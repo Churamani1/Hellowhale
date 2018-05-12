@@ -1,2 +1,2 @@
 # hellowhale
-follow thw step by step guid
+follow the step by step guid
