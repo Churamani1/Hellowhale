@@ -1,2 +1,2 @@
 # hellowhale
-Simple Docker Demo App
+follow thw step by step guid
