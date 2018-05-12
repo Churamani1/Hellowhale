@@ -133,19 +133,25 @@ now in the jenkins shell commands write below commands
 3. docker login -u sharadmagar -p ${DOCKER_HUB}
 4. docker push $IMAGE_NAME
 
-give jenkins sudo permission in ubuntu machine
-----------https://gist.github.com/hayderimran7/9246dd195f785cf4783d--------
-to add jenkins As a sudo in ubuntu
-
-
-after success of the above steps we need to push this to kubernetes
 add anothe execute shell step and add below steps
 
 1. IMAGE_NAME="sharadmagar/hellowhale:${BUILD_NUMBER}"
 2. kubectl set image deployment/hellowhale hellowhale=$IMAGE_NAME
 
 
-after this copy Home/.kube/config file to /var/lib/jenkins/.kube
+give jenkins sudo permission in ubuntu machine
+----------https://gist.github.com/hayderimran7/9246dd195f785cf4783d--------
+to add jenkins As a sudo in ubuntu
+
+if got any error follow below steps
+copy kubernetes-M Home/.kube/config file to jenkins mahince /var/lib/jenkins/.kube
+use winSCP for this
 
 ------then restart the jenkins service
 service jenkins restart
+run jenkins job
+
+DONE.........................
+
+your images is pushed to the docker hub repo
+now do some changes in to the git hellowhale repo and check the wheather the it trigger automatic build
