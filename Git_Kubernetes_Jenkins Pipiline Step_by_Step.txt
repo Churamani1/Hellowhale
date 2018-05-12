@@ -1,0 +1,151 @@
+create 3 Ubuntu machine
+install
+1.Kubernetes-M
+2.Kubernetes-C
+2.Jenkins
+
+run below commands Kubernetes-M
+
+1.  ---------Deploying Docker
+        sudo apt-get update
+
+	sudo apt-get install apt-transport-https ca-certificates curl software-properties-common
+curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo apt-key add -
+sudo apt-key fingerprint 0EBFCD88
+sudo add-apt-repository "deb [arch=amd64] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable"
+sudo apt-get update
+sudo apt-get install docker-ce
+
+
+2.---------Deploying Kubectl
+        sudo snap install kubectl --classic
+
+3.----Deploying Kubelet and Kubeadm
+        apt-get update && apt-get install -y apt-transport-https
+
+        curl -s https://packages.cloud.google.com/apt/doc/apt-key.gpg | apt-key add -
+
+        vi /etc/apt/sources.list.d/kubernetes.list
+        deb http://apt.kubernetes.io/ kubernetes-xenial main
+        
+
+        apt-get update
+        apt-get install -y kubelet kubeadm
+
+4.----------------Using kubeadm to Create a Cluster
+        kubeadm init
+	-----------output of the above command last line-----
+	kubeadm join 172.31.31.151:6443 --token y6otsr.d7xdmbsywzpx9yn0 --discovery-token-ca-cert-hash sha256:00e1264997a59ee4ffb73fcdca4d97b99cba60e44696f9abac5e0f56ab2ec662
+	---execute it on the secod mahine
+5.----Configuring kubelet
+        mkdir -p $HOME/.kube
+        sudo cp -i /etc/kubernetes/admin.conf $HOME/.kube/config
+        sudo chown $(id -u):$(id -g) $HOME/.kube/config
+
+6.  kubectl taint nodes --all node-role.kubernetes.io/master-
+7.  kubectl apply -f https://git.io/weave-kube-1.6
+8.  watch kubectl get pods --all-namespaces
+
+
+------------------------------Kubernetes-C----------------------
+
+1.  ---------Deploying Docker
+        sudo apt-get update
+
+	sudo apt-get install apt-transport-https ca-certificates curl software-properties-common
+curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo apt-key add -
+sudo apt-key fingerprint 0EBFCD88
+sudo add-apt-repository "deb [arch=amd64] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable"
+sudo apt-get update
+sudo apt-get install docker-ce
+
+
+2.---------Deploying Kubectl
+        sudo snap install kubectl --classic
+
+3.----Deploying Kubelet and Kubeadm
+        apt-get update && apt-get install -y apt-transport-https
+
+        curl -s https://packages.cloud.google.com/apt/doc/apt-key.gpg | apt-key add -
+
+        vi /etc/apt/sources.list.d/kubernetes.list
+        deb http://apt.kubernetes.io/ kubernetes-xenial main
+        
+
+        apt-get update
+        apt-get install -y kubelet kubeadm
+
+	kubeadm join 172.31.31.151:6443 --token y6otsr.d7xdmbsywzpx9yn0 --discovery-token-ca-cert-hash sha256:00e1264997a59ee4ffb73fcdca4d97b99cba60e44696f9abac5e0f56ab2ec662
+	---execute it
+
+
+-----------------now run Kubernetes-M commands--------------------
+1. git clone https://github.com/sharadmagar/hellowhale.git
+2. cd hellowhale
+3. docker build . -t hellowhale
+4. docker run -d -p80:80 hellowhale hellowhale
+5. docker tag hellowhale sharadmagar/hellowhale
+6. docker login -u username -p password
+7. docker push sharadmagar/hellowhale
+8. kubectl create deployment hellowhale --image sharadmagar/hellowhale
+9. kubectl get deployments
+10. kubectl get pods
+11. kubectl expose deployment/hellowhale --port=80 --name=hellowhalesvc --type=LoadBalancer
+12. kubectl get svc
+
+
+
+
+-------------------Jenkins Machine and Jenkins configuration--------------
+
+1.  ---------Deploying Docker
+        sudo apt-get update
+
+	sudo apt-get install apt-transport-https ca-certificates curl software-properties-common
+curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo apt-key add -
+sudo apt-key fingerprint 0EBFCD88
+sudo add-apt-repository "deb [arch=amd64] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable"
+sudo apt-get update
+sudo apt-get install docker-ce
+
+
+2.---------Deploying Kubectl
+        sudo snap install kubectl --classic
+
+1. open jenkins on the web and goto the manage jenkins
+2. configure system->envirnment variables->add->provide the dockerhub password details
+3. github server->advance->check the specify hook URLfor github   http://35.154.136.148:8080/github-webhook/
+4. save
+5. now goto the github->hellowhale repo settings->integration and services ->add service->jenkins and github plugin
+6. now enter the ur password ro get changes applied
+7. add jenkins github url  http://35.154.136.148:8080/github-webhook/
+8. add service
+9. create the new jenkins item with frestyle project
+10. add github project url
+11. under source code managment provide the git url
+12. build triggers->github hook trigger
+13. build->execute shell
+
+now in the jenkins shell commands write below commands
+1. sudo chmod 666 /var/run/docker.sock
+1. IMAGE_NAME="sharadmagar/hellowhale:${BUILD_NUMBER}"
+2. docker build . -t $IMAGE_NAME
+3. docker login -u sharadmagar -p ${DOCKER_HUB}
+4. docker push $IMAGE_NAME
+
+give jenkins sudo permission in ubuntu machine
+----------https://gist.github.com/hayderimran7/9246dd195f785cf4783d--------
+to add jenkins As a sudo in ubuntu
+
+
+after success of the above steps we need to push this to kubernetes
+add anothe execute shell step and add below steps
+
+1. IMAGE_NAME="sharadmagar/hellowhale:${BUILD_NUMBER}"
+2. kubectl set image deployment/hellowhale hellowhale=$IMAGE_NAME
+
+
+after this copy Home/.kube/config file to /var/lib/jenkins/.kube
+
+------then restart the jenkins service
+service jenkins restart
