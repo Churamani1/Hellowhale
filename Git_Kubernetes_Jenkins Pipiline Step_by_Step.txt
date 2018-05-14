@@ -155,3 +155,7 @@ DONE.........................
 
 your images is pushed to the docker hub repo
 now do some changes in to the git hellowhale repo and check the wheather the it trigger automatic build
+
+
+use following videos link to get more idea about the project
+https://www.youtube.com/watch?v=288rTpd1SDE
